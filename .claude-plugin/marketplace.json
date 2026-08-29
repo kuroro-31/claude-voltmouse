@@ -1,0 +1,14 @@
+{
+  "name": "claude-voltmouse",
+  "owner": {
+    "name": "Shun-ichiro Tanaka",
+    "url": "https://github.com/kuroro-31"
+  },
+  "plugins": [
+    {
+      "source": "./",
+      "name": "voltmouse",
+      "description": "A pixel-art electric mouse for your Claude Code status line."
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "voltmouse",
+  "description": "A pixel-art electric mouse that lives in your Claude Code status line, greets you at session start, and reacts when work finishes.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Shun-ichiro Tanaka",
+    "url": "https://github.com/kuroro-31"
+  },
+  "homepage": "https://github.com/kuroro-31/claude-voltmouse",
+  "license": "MIT",
+  "keywords": [
+    "statusline",
+    "pixel-art",
+    "fun",
+    "mascot"
+  ]
+}
