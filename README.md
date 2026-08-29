@@ -44,6 +44,9 @@ The mouse changes with your session:
 
 `/voltmouse:mood` previews them all. Set `VOLTMOUSE_MOOD=happy` to pin one.
 
+The numbers follow the same idea: grey while there is room, amber past 70%,
+red past 90%. Labels stay dim so the colour lands on the number.
+
 ## Commands
 
 | Command | What it does |

@@ -49,15 +49,28 @@ fi
 
 RESET=$'\033[0m'; BOLD=$'\033[1m'; DIM=$'\033[2m'
 BODY=$'\033[38;2;255;203;5m'      # body yellow — model/effort
-GRAY=$'\033[38;2;163;155;142m'    # structural — path, branch, separators
-AMBER=$'\033[38;2;199;158;99m'    # metrics
+GRAY=$'\033[38;2;163;155;142m'    # structural — path, branch, separators, labels
+AMBER=$'\033[38;2;199;158;99m'    # a metric that is filling up
+RED=$'\033[38;2;232;72;72m'       # a metric close to its limit (cheek red)
 SEP="${DIM}${GRAY} ▸ ${RESET}"
+
+# A metric is grey until it matters: amber past 70%, red past 90%. The label
+# stays dim so the number carries the colour.
+_metric() { # $1=label $2=percentage
+  local pct
+  [ -z "${2:-}" ] && return
+  pct=$(_num "$2")
+  local c=$GRAY
+  [ "$pct" -ge 70 ] && c=$AMBER
+  [ "$pct" -ge 90 ] && c=$RED
+  printf '%s%s%s %s%s%%%s' "$DIM$GRAY" "$1" "$RESET" "$c" "$pct" "$RESET"
+}
 
 line1="${BODY}⚡${RESET} ${BOLD}${BODY}${model}${RESET}"
 [ -n "$effort" ] && line1+="${DIM}${BODY}/${RESET}${BOLD}${BODY}${effort}${RESET}"
-[ -n "$used" ] && line1+="${SEP}${AMBER}cx $(_num "$used")%${RESET}"
-[ -n "$five" ] && line1+="${SEP}${AMBER}5h $(_num "$five")%${RESET}"
-[ -n "$week" ] && line1+="${SEP}${AMBER}7d $(_num "$week")%${RESET}"
+[ -n "$used" ] && line1+="${SEP}$(_metric cx "$used")"
+[ -n "$five" ] && line1+="${SEP}$(_metric 5h "$five")"
+[ -n "$week" ] && line1+="${SEP}$(_metric 7d "$week")"
 
 line2="${BOLD}${GRAY}${basename}${RESET}"
 if [ -n "$branch" ]; then
