@@ -37,8 +37,8 @@ The mouse changes with your session:
 
 | Mood | When |
 | --- | --- |
-| `normal` | plenty of headroom |
-| `zap` | 5-hour rate limit at 80% or more — ears charged |
+| `normal` | plenty of headroom — the mouse walks |
+| `zap` | 5-hour rate limit at 80% or more — ears lit, legs stretched |
 | `tired` | context window at 70% or more |
 | `sleep` | context window at 90% or more |
 
@@ -46,6 +46,13 @@ The mouse changes with your session:
 
 The numbers follow the same idea: grey while there is room, amber past 70%,
 red past 90%. Labels stay dim so the colour lands on the number.
+
+### About the walk
+
+Claude Code re-runs a status line command every few seconds, and a plugin has no
+way to drive its own timer, so the mouse steps one frame per render. It plods;
+it does not sprint. The frame counter lives in `~/.claude/.voltmouse-frame` so a
+plugin update does not reset the walk.
 
 ## Commands
 

@@ -81,7 +81,11 @@ if [ -n "$branch" ]; then
   [ -n "$dirty" ] && line2+="${RED}${dirty}${RESET}"
 fi
 
+# One step per render. Claude Code re-runs this every few seconds, so this is a
+# plod, not a sprint — see README.
+frame=$(vm_next_frame)
+
 printf '%s  %s\n%s  %s\n%s' \
-  "$(vm_row "$mood" 1)" "$line1" \
-  "$(vm_row "$mood" 2)" "$line2" \
-  "$(vm_row "$mood" 3)"
+  "$(vm_row "$mood" 1 "$frame")" "$line1" \
+  "$(vm_row "$mood" 2 "$frame")" "$line2" \
+  "$(vm_row "$mood" 3 "$frame")"
