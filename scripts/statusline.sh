@@ -4,10 +4,6 @@
 # summary: model/effort, context usage, rate limits, cwd and git branch.
 
 set -uo pipefail
-here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-# shellcheck source=scripts/pixel.sh
-. "$here/pixel.sh"
-
 input=$(cat)
 
 _jq() { printf '%s' "$input" | jq -r "$1" 2>/dev/null; }
@@ -33,19 +29,7 @@ if [ -n "$cwd" ] && git -C "$cwd" --no-optional-locks rev-parse --git-dir >/dev/
   [ -n "$(git -C "$cwd" --no-optional-locks status --porcelain 2>/dev/null)" ] && dirty="●"
 fi
 
-# --- mood ------------------------------------------------------------------
-# The mouse reflects how much headroom is left: it charges up as the rate
-# limit fills, and gets sleepy as the context window fills.
 _num() { printf '%.0f' "${1:-0}" 2>/dev/null || printf '0'; }
-mood=${VOLTMOUSE_MOOD:-}
-if [ -z "$mood" ]; then
-  ctx=$(_num "$used"); lim=$(_num "$five")
-  if   [ "$ctx" -ge 90 ]; then mood=sleep
-  elif [ "$ctx" -ge 70 ]; then mood=tired
-  elif [ "$lim" -ge 80 ]; then mood=zap
-  else mood=normal
-  fi
-fi
 
 RESET=$'\033[0m'; BOLD=$'\033[1m'; DIM=$'\033[2m'
 BODY=$'\033[38;2;255;203;5m'      # body yellow — model/effort
@@ -81,11 +65,4 @@ if [ -n "$branch" ]; then
   [ -n "$dirty" ] && line2+="${RED}${dirty}${RESET}"
 fi
 
-# One step per render. Claude Code re-runs this every few seconds, so this is a
-# plod, not a sprint — see README.
-frame=$(vm_next_frame)
-
-printf '%s  %s\n%s  %s\n%s' \
-  "$(vm_row "$mood" 1 "$frame")" "$line1" \
-  "$(vm_row "$mood" 2 "$frame")" "$line2" \
-  "$(vm_row "$mood" 3 "$frame")"
+printf '%s\n%s' "$line1" "$line2"

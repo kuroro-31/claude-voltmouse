@@ -22,27 +22,39 @@ vm_color() {
   esac
 }
 
-# $1=mood $2=frame(0/1) -> prints 6 grid rows.
-# The side view walks: two frames that differ only in the leg row, stepped once
-# per status line render (every few seconds), so the mouse plods rather than
-# sprints. Face-on grids are used when it is too tired to move.
+# $1=mood $2=frame(0/1) -> prints the pixel grid, one line per pixel row.
+# Side view, 14x8: two long ears with dark tips, a zigzag tail, a cheek spot and
+# four legs. The two frames differ in the legs and the tail so the step reads at
+# a glance — the status line only redraws every few seconds.
 vm_grid() {
-  local mood=$1 frame=${2:-0}
+  local mood=$1 frame=${2:-0} tip=K
+  [ "$mood" = "zap" ] && tip=W
   case "$mood" in
-    tired)
-      printf '%s\n' 'K.....K' 'KY...YK' '.YKYKY.' 'YKYYYKY' 'YRYYYRY' '.YYYYY.' ;;
-    sleep)
-      printf '%s\n' 'K.....K' 'KY...YK' '.YYYYY.' 'YKKYKKY' 'YRYYYRY' '.YYYYY.' ;;
-    happy)
-      printf '%s\n' 'K.....K' 'KY...YK' '.YKYKY.' 'YYYYYYY' 'YRYYYRY' '.YYYYY.' ;;
-    zap)
-      # Ears lit, legs stretched out — the fast frames.
-      printf '%s\n' '..W....W..' '..WY..WY..' 'WYYYYYYYY.' 'WYYYYKYYY.' '.YYYRYYYY.' \
-        "$([ "$frame" = 1 ] && printf 'Y..YY..Y..' || printf '.Y.Y..Y.Y.')" ;;
-    *)
-      printf '%s\n' '..K....K..' '..KY..KY..' 'YYYYYYYYY.' 'YYYYYKYYY.' '.YYYRYYYY.' \
-        "$([ "$frame" = 1 ] && printf '..YY..YY..' || printf '.Y.Y..Y.Y.')" ;;
+    tired|sleep|happy)
+      # Face on, sitting still.
+      local eyes='YKYYYKY'
+      [ "$mood" = "happy" ] && eyes='YYYYYYY'
+      [ "$mood" = "sleep" ] && eyes='YKKYKKY'
+      printf '%s\n' 'K.....K' 'KY...YK' '.YYYYY.' "$eyes" 'YRYYYRY' '.YYYYY.'
+      return ;;
   esac
+  # Right-facing, 16x10. The tail sweeps up and back from the hips, the ears
+  # stand tall with dark tips, and the cheek sits under the eye.
+  printf '%s\n' \
+    "..........$tip...$tip." \
+    "..........$tip...$tip." \
+    'Y.........Y...Y.' \
+    'YY.......YYY.YY.' \
+    '.YY.....YYYYYYY.' \
+    '..YY...YYYYKKYY.' \
+    '...YYYYYYYYYYYY.' \
+    '..YYYYYYYYRYYYY.' \
+    '..YYYYYYYYYYY...'
+  if [ "$frame" = 1 ]; then
+    printf '%s\n' '..Y..Y..Y..Y....'
+  else
+    printf '%s\n' '...YY....YY.....'
+  fi
 }
 
 # $1=upper letter $2=lower letter
@@ -57,7 +69,14 @@ vm_px() {
 }
 
 # $1=mood $2=row index (1..3) -> prints one terminal row
-# $1=mood $2=row (1..3) $3=frame
+# Number of terminal rows a mood's grid needs (two pixel rows per line).
+vm_rows() {
+  local n=0 line
+  while IFS= read -r line; do n=$(( n + 1 )); done < <(vm_grid "$1" 0)
+  printf '%s' $(( (n + 1) / 2 ))
+}
+
+# $1=mood $2=row (1-based) $3=frame
 vm_row() {
   # bash 3.2 (macOS system bash) has no mapfile, so read the grid line by line.
   local mood=$1 row=$2 frame=${3:-0} line upper lower i n=0
@@ -73,8 +92,9 @@ vm_row() {
 
 # $1=mood $2=frame -> prints the whole 3-row sprite
 vm_sprite() {
-  local mood=$1 frame=${2:-0} r
-  for r in 1 2 3; do vm_row "$mood" "$r" "$frame"; printf '\n'; done
+  local mood=$1 frame=${2:-0} r n
+  n=$(vm_rows "$mood")
+  for (( r = 1; r <= n; r++ )); do vm_row "$mood" "$r" "$frame"; printf '\n'; done
 }
 
 # Advances one step per call and prints the new frame number. The counter lives
