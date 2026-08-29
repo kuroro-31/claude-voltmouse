@@ -49,7 +49,8 @@ fi
 
 RESET=$'\033[0m'; BOLD=$'\033[1m'; DIM=$'\033[2m'
 BODY=$'\033[38;2;255;203;5m'      # body yellow — model/effort
-GRAY=$'\033[38;2;163;155;142m'    # structural — path, branch, separators, labels
+GRAY=$'\033[38;2;163;155;142m'    # structural — separators, labels
+PATHC=$'\033[38;2;205;200;190m'   # the cwd — the loudest thing on line two
 AMBER=$'\033[38;2;199;158;99m'    # a metric that is filling up
 RED=$'\033[38;2;232;72;72m'       # a metric close to its limit (cheek red)
 SEP="${DIM}${GRAY} ▸ ${RESET}"
@@ -72,10 +73,12 @@ line1="${BODY}⚡${RESET} ${BOLD}${BODY}${model}${RESET}"
 [ -n "$five" ] && line1+="${SEP}$(_metric 5h "$five")"
 [ -n "$week" ] && line1+="${SEP}$(_metric 7d "$week")"
 
-line2="${BOLD}${GRAY}${basename}${RESET}"
+# The cwd leads; the branch sits a step behind it; only "uncommitted" gets a
+# colour, because it is the one thing here worth reacting to.
+line2="${BOLD}${PATHC}${basename}${RESET}"
 if [ -n "$branch" ]; then
-  line2+="${SEP}${GRAY}⎇ ${branch}${RESET}"
-  [ -n "$dirty" ] && line2+="${BOLD}${GRAY}${dirty}${RESET}"
+  line2+="${SEP}${DIM}${GRAY}⎇ ${branch}${RESET}"
+  [ -n "$dirty" ] && line2+="${RED}${dirty}${RESET}"
 fi
 
 printf '%s  %s\n%s  %s\n%s' \
