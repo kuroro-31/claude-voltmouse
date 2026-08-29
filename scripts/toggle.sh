@@ -15,20 +15,27 @@ case "$action" in
   on)
     # Remember the previous statusLine (once) so `off` can restore it.
     if [ ! -f "$backup" ]; then
-      jq '{statusLine: (.statusLine // null)}' "$settings" > "$backup"
+      jq '{statusLine: (.statusLine // null), spinnerVerbs: (.spinnerVerbs // null)}' \
+        "$settings" > "$backup"
     fi
     tmp=$(mktemp)
     jq --arg cmd "bash \"$here/statusline.sh\"" \
-       '.statusLine = {type: "command", command: $cmd, padding: 0}' \
+       --slurpfile verbs "$here/../verbs.json" \
+       '.statusLine = {type: "command", command: $cmd, padding: 0}
+        | .spinnerVerbs = $verbs[0]' \
        "$settings" > "$tmp" && mv "$tmp" "$settings"
-    echo "voltmouse: status line enabled"
+    echo "voltmouse: status line and spinner verbs enabled"
     ;;
   off)
     tmp=$(mktemp)
-    if [ -f "$backup" ] && [ "$(jq -r '.statusLine' "$backup")" != "null" ]; then
-      jq --slurpfile b "$backup" '.statusLine = $b[0].statusLine' "$settings" > "$tmp"
+    if [ -f "$backup" ]; then
+      jq --slurpfile b "$backup" '
+        . as $s
+        | (if $b[0].statusLine   == null then del(.statusLine)   else .statusLine   = $b[0].statusLine   end)
+        | (if $b[0].spinnerVerbs == null then del(.spinnerVerbs) else .spinnerVerbs = $b[0].spinnerVerbs end)
+      ' "$settings" > "$tmp"
     else
-      jq 'del(.statusLine)' "$settings" > "$tmp"
+      jq 'del(.statusLine) | del(.spinnerVerbs)' "$settings" > "$tmp"
     fi
     mv "$tmp" "$settings"
     rm -f "$backup"
